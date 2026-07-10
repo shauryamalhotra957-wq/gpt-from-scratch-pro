@@ -1,0 +1,15 @@
+First Engineer:
+We build the small machine carefully, wire by wire.
+
+Second Engineer:
+Then we teach it to predict the next mark, and the marks become music.
+
+First Engineer:
+Does it understand?
+
+Second Engineer:
+Not as we do. But it learns the shape of our language, and that is a beginning.
+
+Narrator:
+The workshop grows quiet. The model listens to every symbol before it speaks.
+
