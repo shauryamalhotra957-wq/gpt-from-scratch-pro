@@ -11,6 +11,15 @@ It includes a real package layout, a decoder-only Transformer, a character
 tokenizer, a byte-level BPE tokenizer, corpus preparation, training,
 checkpointing, text generation, tests, configs, and documentation.
 
+## Project Snapshot
+
+| Area | Detail |
+| --- | --- |
+| Experience | Professional GPT-style model implementation and CLI |
+| Core system | Decoder-only Transformer, character tokenizer, byte-level BPE, training, checkpoints |
+| Design signal | Clear command workflow from sample data to generation |
+| Quality signal | Pytest, Ruff, GitHub Actions, architecture and engineering docs |
+
 ## What Makes This Better Than The Tutorial Baseline
 
 - Modern attention path: uses PyTorch scaled-dot-product attention when
