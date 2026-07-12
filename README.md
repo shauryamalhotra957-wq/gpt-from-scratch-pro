@@ -1,5 +1,7 @@
 # GPT From Scratch Pro
 
+[![tests](https://github.com/shauryamalhotra957-wq/gpt-from-scratch-pro/actions/workflows/tests.yml/badge.svg)](https://github.com/shauryamalhotra957-wq/gpt-from-scratch-pro/actions/workflows/tests.yml)
+
 This is a complete, professional GPT-style language-model project inspired by
 Andrej Karpathy's reference video, ["Let's build GPT: from scratch, in code,
 spelled out"](https://www.youtube.com/watch?v=kCc8FmEb1nY).
@@ -21,8 +23,7 @@ checkpointing, text generation, tests, configs, and documentation.
   sampling with optional deterministic seeds.
 - Dataset inspection: verify tokenizer type, vocabulary size, split sizes, and
   decoded previews before burning time on training.
-- CI-ready quality gate: tests are standard-library compatible and can run in
-  GitHub Actions.
+- CI-ready quality gate: pytest and Ruff run locally and in GitHub Actions.
 
 ## What Is Inside
 
@@ -59,8 +60,9 @@ python -m gpt_from_scratch generate --checkpoint runs/demo-run/best.pt --prompt 
 Run the tests:
 
 ```powershell
-$env:PYTHONPATH = "src"
-python -m unittest discover -s tests
+python -m pip install -e ".[dev]"
+python -m pytest
+python -m ruff check .
 ```
 
 Install as an editable package:
