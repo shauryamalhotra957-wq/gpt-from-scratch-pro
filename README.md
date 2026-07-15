@@ -147,3 +147,7 @@ models actually work.
 - `tests/`: correctness and smoke tests.
 - `docs/ARCHITECTURE.md`: deeper implementation notes.
 - `docs/ENGINEERING.md`: engineering decisions and extension points.
+
+## CLI Experience
+
+The [CLI experience guide](docs/USER_EXPERIENCE.md) defines consistent preparation, training, evaluation, checkpoint, generation, error, and non-interactive output states for people running the model locally or in CI.
