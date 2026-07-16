@@ -42,9 +42,10 @@ def save_checkpoint(
 
 
 def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") -> dict[str, Any]:
+    """Load checkpoints without allowing arbitrary pickle globals when supported."""
     kwargs: dict[str, Any] = {"map_location": map_location}
     if "weights_only" in inspect.signature(torch.load).parameters:
-        kwargs["weights_only"] = False
+        kwargs["weights_only"] = True
     return torch.load(Path(path), **kwargs)
 
 
