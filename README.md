@@ -74,6 +74,8 @@ python -m pytest
 python -m ruff check .
 ```
 
+Training configuration is validated before model allocation. Invalid schedules fail fast with actionable errors—for example, a negative warmup, a decay window that ends before warmup, or a minimum learning rate above the peak learning rate.
+
 Install as an editable package:
 
 ```powershell

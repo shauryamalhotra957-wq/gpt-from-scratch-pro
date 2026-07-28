@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, fields
 import json
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any, TypeVar
-
 
 T = TypeVar("T")
 
@@ -82,6 +81,12 @@ class TrainConfig:
             raise ValueError("learning_rate must be positive")
         if self.min_lr < 0:
             raise ValueError("min_lr must be non-negative")
+        if self.min_lr > self.learning_rate:
+            raise ValueError("min_lr must not exceed learning_rate")
+        if self.warmup_iters < 0:
+            raise ValueError("warmup_iters must be non-negative")
+        if self.lr_decay_iters < self.warmup_iters:
+            raise ValueError("lr_decay_iters must be greater than or equal to warmup_iters")
         if self.weight_decay < 0:
             raise ValueError("weight_decay must be non-negative")
         if not 0 <= self.beta1 < 1 or not 0 <= self.beta2 < 1:
