@@ -29,6 +29,18 @@ class TokenizerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             tokenizer.encode("abcd")
 
+    def test_bpe_rejects_unknown_merge_references(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unknown token"):
+            BytePairTokenizer.from_dict(
+                {"type": "byte_bpe", "merges": [[999, 1, 256]]}
+            )
+
+    def test_bpe_rejects_duplicate_token_ids(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Invalid BPE token id"):
+            BytePairTokenizer.from_dict(
+                {"type": "byte_bpe", "merges": [[1, 2, 256], [3, 4, 256]]}
+            )
+
     def test_byte_pair_tokenizer_roundtrip_and_persistence(self) -> None:
         text = "the theater theory theme then there\n" * 4
         tokenizer = BytePairTokenizer.train(text, vocab_size=280, min_frequency=2)
