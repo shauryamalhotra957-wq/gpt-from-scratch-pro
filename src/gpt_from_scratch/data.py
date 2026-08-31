@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
+import inspect
 from typing import Literal
 
 import torch
@@ -102,8 +103,11 @@ def load_token_tensors(data_dir: str | Path) -> tuple[torch.Tensor, torch.Tensor
         raise FileNotFoundError(
             f"Expected {train_path.name} and {val_path.name} inside {data_dir}"
         )
-    train_data = torch.load(train_path, map_location="cpu")
-    val_data = torch.load(val_path, map_location="cpu")
+    load_kwargs = {"map_location": "cpu"}
+    if "weights_only" in inspect.signature(torch.load).parameters:
+        load_kwargs["weights_only"] = True
+    train_data = torch.load(train_path, **load_kwargs)
+    val_data = torch.load(val_path, **load_kwargs)
     if train_data.dtype != torch.long or val_data.dtype != torch.long:
         raise TypeError("Prepared token tensors must have dtype torch.long")
     return train_data, val_data
