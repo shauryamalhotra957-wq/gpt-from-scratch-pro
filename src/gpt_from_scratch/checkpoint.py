@@ -45,7 +45,23 @@ def load_checkpoint(path: str | Path, map_location: str | torch.device = "cpu") 
     kwargs: dict[str, Any] = {"map_location": map_location}
     if "weights_only" in inspect.signature(torch.load).parameters:
         kwargs["weights_only"] = False
-    return torch.load(Path(path), **kwargs)
+    checkpoint = torch.load(Path(path), **kwargs)
+    if not isinstance(checkpoint, dict):
+        raise ValueError("Checkpoint must contain a mapping payload")
+    required_keys = {
+        "model_state",
+        "optimizer_state",
+        "model_config",
+        "train_config",
+        "tokenizer",
+        "iter_num",
+        "best_val_loss",
+        "history",
+    }
+    missing_keys = sorted(required_keys - checkpoint.keys())
+    if missing_keys:
+        raise ValueError(f"Checkpoint is missing required keys: {missing_keys}")
+    return checkpoint
 
 
 def load_model_from_checkpoint(
