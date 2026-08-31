@@ -82,6 +82,12 @@ class TrainConfig:
             raise ValueError("learning_rate must be positive")
         if self.min_lr < 0:
             raise ValueError("min_lr must be non-negative")
+        if self.min_lr > self.learning_rate:
+            raise ValueError("min_lr cannot exceed learning_rate")
+        if self.lr_decay_iters <= 0:
+            raise ValueError("lr_decay_iters must be positive")
+        if self.warmup_iters > self.lr_decay_iters:
+            raise ValueError("warmup_iters cannot exceed lr_decay_iters")
         if self.weight_decay < 0:
             raise ValueError("weight_decay must be non-negative")
         if not 0 <= self.beta1 < 1 or not 0 <= self.beta2 < 1:
