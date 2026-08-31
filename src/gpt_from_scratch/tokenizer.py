@@ -105,6 +105,17 @@ class BytePairTokenizer:
 
     merges: list[tuple[int, int, int]]
 
+    def __post_init__(self) -> None:
+        known_ids = set(range(256))
+        for left, right, new_id in self.merges:
+            if new_id < 256 or new_id in known_ids:
+                raise ValueError(f"Invalid BPE token id: {new_id}")
+            if left not in known_ids or right not in known_ids:
+                raise ValueError(
+                    f"BPE merge references unknown token(s): {left}, {right}"
+                )
+            known_ids.add(new_id)
+
     @classmethod
     def train(
         cls,
