@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  gpt-from-scratch-pro:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - ENV=production
+    command: python scripts/benchmark_attention_throughput.py
