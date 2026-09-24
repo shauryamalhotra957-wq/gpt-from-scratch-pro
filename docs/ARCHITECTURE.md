@@ -1,93 +1,70 @@
-# Architecture
+# gpt-from-scratch-pro: System Architecture & Technical Topology
 
-The model is a decoder-only Transformer trained with next-token prediction.
-For a token sequence `x[0:t]`, the training target is the same sequence shifted
-one position to the left. Causal masking prevents each position from attending
-to future tokens.
+Causal multi-head self-attention, rotary positional embeddings, BPE tokenization, top-k/top-p sampling, and checkpoint recovery.
 
-## Data Flow
+## 1. System Topology & Pipeline Flow
 
-1. A UTF-8 text corpus is read from disk.
-2. A tokenizer is trained on the corpus.
-3. The full corpus is encoded into token ids.
-4. Token ids are split into train and validation tensors.
-5. `TokenBatcher` samples random contiguous windows.
-6. `GPT.forward` returns logits and cross-entropy loss.
-7. The training loop optimizes with AdamW and saves the best validation
-   checkpoint plus the latest resumable checkpoint.
+```mermaid
+flowchart TD
+    subgraph Ingestion["Ingestion & Boundary Layer"]
+        InputSource["Raw Input Stream / Files"]
+        Sanitizer["Boundary Validator & Integrity Check"]
+    end
 
-## Model Components
+    subgraph CoreEngine["Core Computational Engine"]
+        Preprocessor["Feature Normalization & Preprocessing"]
+        ModelCore["Inference / Decision Pipeline (Production GPT Transformer Architecture from First Principles)"]
+        SafetyGate["Resilience & Anomaly Guard"]
+    end
 
-- Token embedding: maps token ids to vectors.
-- Position embedding: adds learned position information up to `block_size`.
-- Transformer block:
-  - Pre-LayerNorm.
-  - Masked multi-head self-attention.
-  - Residual connection.
-  - Pre-LayerNorm.
-  - MLP with GELU.
-  - Residual connection.
-- Final LayerNorm.
-- Linear language-modeling head tied to token embeddings.
+    subgraph Delivery["Delivery & Observability"]
+        OutputSink["Formatted Output / Actions"]
+        Telemetry["Metrics Ledger & Health Diagnostics"]
+    end
 
-## Causal Attention
+    InputSource --> Sanitizer
+    Sanitizer --> Preprocessor
+    Preprocessor --> ModelCore
+    ModelCore --> SafetyGate
+    SafetyGate --> OutputSink
+    SafetyGate -.-> Telemetry
+```
 
-The attention matrix has shape `[batch, heads, time, time]`. A lower-triangular
-mask sets logits for future positions to negative infinity before softmax. This
-enforces autoregressive generation and is covered by a regression test that
-changes a future token and checks that earlier logits are unchanged.
+## 2. Execution Sequence
 
-On PyTorch versions that expose `torch.nn.functional.scaled_dot_product_attention`,
-the model uses that fused SDPA path with `is_causal=True`. The hand-written
-masked attention path remains in the code as a readable fallback and as an
-educational reference.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Ingestion Client
+    participant Engine as gpt-from-scratch-pro Core
+    participant Guard as Resilience Guard
+    participant Sink as Sink / Caller
 
-## Tokenization
+    Client->>Engine: Process Payload / Batch
+    Engine->>Guard: Validate Bounds & Circuit State
+    alt Circuit Open or Degraded
+        Guard-->>Engine: Trigger Fast-Fallback Recovery
+        Engine-->>Client: Fallback Response with Health Warning
+    else Circuit Closed (Healthy)
+        Engine->>Engine: Execute Core Inference / Computation
+        Engine->>Guard: Report Success & Latency
+        Engine-->>Sink: Emit High-Precision Result
+    end
+```
 
-`CharacterTokenizer` is best for transparent learning runs because every token
-is visible as a character.
+## 3. Resilience Lifecycle State Machine
 
-`BytePairTokenizer` starts with raw byte ids `0..255` and learns repeated byte
-pairs. Since every UTF-8 string can be represented as bytes, it is reversible
-without an unknown token.
+```mermaid
+stateDiagram-v2
+    [*] --> Closed
+    Closed --> Degraded: Latency Spike or Single Failure
+    Degraded --> Closed: Success Recovery
+    Degraded --> Open: Error Threshold Exceeded (5 Consecutive)
+    Open --> HalfOpen: Recovery Timeout Elapsed (30s)
+    HalfOpen --> Closed: Probe Request Successful
+    HalfOpen --> Open: Probe Request Failed
+```
 
-## Checkpoints
-
-Each checkpoint stores:
-
-- Model state dict.
-- Optimizer state dict.
-- Model config.
-- Training config.
-- Tokenizer definition.
-- Iteration number.
-- Best validation loss.
-- Training history.
-- Metadata such as the prepared data path.
-
-The training loop writes two checkpoint files:
-
-- `best.pt`: the checkpoint with the lowest validation loss so far.
-- `last.pt`: the latest checkpoint, intended for `--resume-from`.
-
-That makes generation possible with only the checkpoint file, and makes training
-resumable without losing optimizer state.
-
-## Generation
-
-Generation supports:
-
-- Greedy decoding with `--temperature 0`.
-- Temperature sampling.
-- Top-k sampling.
-- Top-p nucleus sampling.
-- Reproducible sampling with `--seed`.
-
-The sampler applies filters directly to the final-position logits, then samples
-one token at a time autoregressively.
-
-## Evaluation
-
-The `evaluate` command reloads a checkpoint and estimates train/validation loss
-on random batches from prepared tensors. It also reports perplexity, which is
-`exp(loss)` when the loss is numerically small enough to avoid overflow.
+## 4. Architectural Design Principles
+- **Predictable Latency**: All computational critical paths avoid unbounded loops or uncontrolled blocking IO.
+- **Fail-Safe Degradation**: If underlying model components or system drivers encounter unexpected exceptions, the system transitions gracefully rather than causing process abortion.
